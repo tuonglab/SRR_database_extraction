@@ -4,7 +4,7 @@
 source_dir="/QRISdata/Q7361/SRRIDS/fastqfilesncbi"
 
 # Chemin du fichier de destination
-output_file="/scratch/user/uqsdemon/rnewbashscriptvf/filedone.txt"
+output_file="filedone.txt"
 
 # Vérifier si le fichier de destination existe déjà et le supprimer
 if [ -f "$output_file" ]; then
