@@ -19,7 +19,7 @@ module load samtools
 fastq_ids_file="SRRIDS/fastq_ids.txt"
 # List of IDs to exclude
 exclude_ids_file="filedone.txt"
-outputpath="/QRISdata/Q7361/SRRIDS/fastqfilesncbi"
+output_scratch="/scratch/project/tcr_ml/SRR_database_extraction/fastqfilesncbi"
 keypath="prj_33410_D38764.ngc"
 
 # Check that sra-tools is loaded correctly
@@ -41,10 +41,11 @@ fi
 # Load the IDs to exclude into an array
 mapfile -t exclude_ids < "$exclude_ids_file"
 
-temp_path="/QRISdata/Q7361/temp"
+temp_path="$TMPDIR"
 
 # Ensure the temporary directory exists
 mkdir -p "$temp_path"
+mkdir -p "$output_scratch"
 
 # Function to download and convert SRA files
 download_and_convert() {
@@ -54,14 +55,14 @@ download_and_convert() {
     return
   fi
   echo "Downloading and converting $srr_id to FASTQ format from NCBI..."
-  mkdir -p "$outputpath/$srr_id"
-  fasterq-dump --ngc "$keypath" --split-files "$srr_id" -O "$outputpath/$srr_id" --temp "$temp_path"
+  mkdir -p "$output_scratch/$srr_id"
+  fasterq-dump --ngc "$keypath" --split-files "$srr_id" -O "$output_scratch/$srr_id" --temp "$temp_path"
 }
 
 export -f download_and_convert
-export outputpath keypath temp_path exclude_ids
+export output_scratch keypath temp_path exclude_ids
 
 # Use GNU Parallel to run the download_and_convert function in parallel
-cat "$fastq_ids_file" | parallel -j 4 download_and_convert
+cat "$fastq_ids_file" | parallel -j 2 download_and_convert
 
 echo "Download over"

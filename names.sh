@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Chemin du répertoire source
-source_dir="/QRISdata/Q7361/SRRIDS/fastqfilesncbi"
+source_dir="/scratch/project/tcr_ml/SRR_database_extraction/fastqfilesncbi"
 
 # Chemin du fichier de destination
 output_file="filedone.txt"
