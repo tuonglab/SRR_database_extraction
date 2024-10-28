@@ -10,22 +10,25 @@ exclude_ids_file="filedone.txt"
 # Check that sra-tools is loaded correctly
 if ! command -v sam-dump &> /dev/null; then
   echo "sam-dump could not be found. Please check your sratoolkit installation and PATH."
-  help
+  exit 1
 fi
 
 temp_path="$TMPDIR"
-# Load the IDs to exclude into an array
-mapfile -t exclude_ids < "$exclude_ids_file"
-
 
 # Ensure the temporary directory exists
 mkdir -p "$temp_path"
 mkdir -p "$output_scratch"
 
+# Load the IDs to exclude into a temporary file
+temp_exclude_file=$(mktemp)
+cat "$exclude_ids_file" > "$temp_exclude_file"
+echo "Excluded IDs loaded."
+
 # Function to download and convert SRA files
 download_and_convert() {
   srr_id=$1
-  if printf '%s\n' "${exclude_ids[@]}" | grep -qx "$srr_id"; then
+  # Check if ID exists in the exclusion file
+  if grep -qx "$srr_id" "$temp_exclude_file"; then
     echo "Skipping excluded ID: $srr_id"
     return
   fi
@@ -36,9 +39,11 @@ download_and_convert() {
 }
 
 export -f download_and_convert
-export output_scratch keypath temp_path exclude_ids
+export output_scratch keypath temp_path temp_exclude_file
 
 # Use GNU Parallel to run the download_and_convert function in parallel
-cat "$srr_bam" | parallel -j 16 download_and_convert
+cat "$srr_bam" | parallel -j 2 download_and_convert
 
+# Cleanup temporary file
+rm "$temp_exclude_file"
 echo "Download over"
